@@ -10,6 +10,16 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
 
+URL = 'api.worldweatheronline.com'
+api_key = '5b4541479ee849d29a8152452202505'
+locations = {}
+datas = []
+DayWeek = ['Lundi', 'Mardi', 'Mercredi',
+           'Jeudi', 'Vendedi', 'Samedi', 'Dimanche']
+Month = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
+         'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre']
+
+
 class WeatherInfos:
     """Résultat pour chaque jour de la requête"""
 
@@ -29,6 +39,8 @@ class WeatherInfos:
     def updateScore(self):
         score = 0
         if self.houle > 1.0:
+            score += 3
+        elif self.houle > 1.0:
             score += 1
         if self.periode > 11:
             score += 3
@@ -51,16 +63,6 @@ class WeatherInfos:
         elif(self.directionVent == 'S' or self.directionVent == 'SSE' or self.directionVent == 'SSO'):
             score -= 1
         self.score = score
-
-
-URL = 'api.worldweatheronline.com'
-api_key = '5b4541479ee849d29a8152452202505'
-locations = {}
-datas = []
-DayWeek = ['Lundi', 'Mardi', 'Mercredi',
-           'Jeudi', 'Vendedi', 'Samedi', 'Dimanche']
-Month = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
-         'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre']
 
 
 def sendMail(previsionSurf):
