@@ -27,7 +27,7 @@ class WeatherInfos:
         self.valueWeather = ''
         self.hours = ''
         self.date = 0
-        self.location = ''
+        self.location = []
         self.vitesseVent = 0
         self.directionVent = ''
         self.tempEau = ''
@@ -39,9 +39,9 @@ class WeatherInfos:
     def updateScore(self):
         score = 0
         if self.houle > 1.0:
+            score += 5
+        elif self.houle > 0.5:
             score += 3
-        elif self.houle > 1.0:
-            score += 1
         if self.periode > 11:
             score += 3
         elif self.periode > 8:
@@ -56,13 +56,53 @@ class WeatherInfos:
             score += 1
         if self.vitesseVent > 15:
             score -= 1
-        if (self.directionVent == 'NNE' or self.directionVent == 'N' or self.directionVent == 'NNO'):
-            score += 3
-        elif(self.directionVent == 'NO' or self.directionVent == 'NE' or self.directionVent == 'ONO' or self.directionVent == 'ENE'):
-            score += 1
-        elif(self.directionVent == 'S' or self.directionVent == 'SSE' or self.directionVent == 'SSO'):
-            score -= 1
+        elif self.vitesseVent > 30:
+            score -= 3
+        score += self.directionVentScore()
         self.score = score
+
+    def directionVentScore(self):
+        if(self.location[2] == 'Nord'):
+            if self.directionVent in ['N', 'NNE', 'NNO']:
+                return 3
+            elif self.directionVent in ['NO', 'ONO', 'NE', 'ENE']:
+                return 1
+        elif(self.location[2] == 'Sud'):
+            if self.directionVent in ['S', 'SSE', 'SSO']:
+                return 3
+            elif self.directionVent in ['SO', 'OSO', 'SE', 'ESE']:
+                return 1
+        elif(self.location[2] == 'Ouest'):
+            if self.directionVent in ['ONO', 'O', 'OSO']:
+                return 3
+            elif self.directionVent in ['NO', 'SO', 'NNO', 'SSO']:
+                return 1
+        elif(self.location[2] == 'Est'):
+            if self.directionVent in ['E', 'ENE', 'ESE']:
+                return 3
+            elif self.directionVent in ['NE', 'SE', 'SSE', 'NNE']:
+                return 1
+        if(self.location[2] == 'Nord-Ouest'):
+            if self.directionVent in ['NO', 'NNO', 'ONO']:
+                return 3
+            elif self.directionVent in ['O', 'N', 'NNE', 'OSO']:
+                return 1
+        elif(self.location[2] == 'Nord-Est'):
+            if self.directionVent in ['ENE', 'NNE', 'NE']:
+                return 3
+            elif self.directionVent in ['N', 'E', 'NNO', 'ESE']:
+                return 1
+        elif(self.location[2] == 'Sud-Ouest'):
+            if self.directionVent in ['SO', 'SSO', 'OSO']:
+                return 3
+            elif self.directionVent in ['O', 'ONO', 'S', 'SSE']:
+                return 1
+        elif(self.location[2] == 'Sud-Est'):
+            if self.directionVent in ['SE', 'SSE', 'ESE']:
+                return 3
+            elif self.directionVent in ['ENE', 'SSO', 'S', 'E']:
+                return 1
+        return 0
 
 
 def sendMail(previsionSurf):
@@ -91,8 +131,8 @@ def writeBestSpot():
     stringTab = []
     datas = (sorted(datas, key=lambda spotHours: spotHours.score, reverse=True))
     for weatherHours in datas:
-        if weatherHours.score > 8:
-            stringTab.append(f'''{weatherHours.location}: Score {weatherHours.score}
+        if weatherHours.score > 5:
+            stringTab.append(f'''{weatherHours.location[0]}: Score {weatherHours.score}
 {weatherHours.date} à {weatherHours.hours}, le vent soufflera vers {weatherHours.directionVent} à {weatherHours.vitesseVent} km/s
 {weatherHours.tempExt}°C à l\'extérieur / {weatherHours.tempEau}°C dans l\'eau
 Temps : {weatherHours.valueWeather}
@@ -100,7 +140,7 @@ La houle des vagues est de {weatherHours.houle}m et leur période est de {weathe
             ''')
 
     if len(stringTab) == 0:
-        res = f'Il n\'y a pas de bonnes sessions à {datas[0].location} pour cette semaine, réessayer plus tard'
+        res = f'Il n\'y a pas de bonnes sessions à {datas[0].location[0]} pour cette semaine, réessayer plus tard'
     else:
         res = '\n'.join(stringTab)
     datas.clear()
@@ -115,7 +155,7 @@ def initSpots():
     fichierSpots = open(f'./spots/spots.csv', 'r')
     spots = csv.reader(fichierSpots, delimiter=';', dialect='excel')
     for spot in spots:
-        locations[len(locations)] = [spot[0], spot[1]]
+        locations[len(locations)] = [spot[0], spot[1], spot[2]]
     fichierSpots.close()
 
 
@@ -123,9 +163,14 @@ def addSpot():
     nom_spot = input('Renseigner le nom du spot :\n')
     location = input(
         'Renseigner la localisation du spot sous cette forme 48.15,2.82 (Google Maps est ton ami):\n')
-    fichierSpots = open(f'./spots/spots.csv', 'a', newline='')
+    orientPlage = orientPlage = input(
+        'La mer est orienté vers quel point cardinal (Sud,Nord,Est,Ouest,Sud-Ouest,Sud-Est,Nord-Est,Nord-Ouest) :\n')
+    while (orientPlage not in ['Sud', 'Nord', 'Est', 'Ouest', 'Sud-Ouest', 'Sud-Est', 'Nord-Est', 'Nord-Ouest']):
+        orientPlage = input(
+            'Renseignez une valeur dans celle ci Sud,Nord,Est,Ouest,Sud-Ouest,Sud-Est,Nord-Est,Nord-Ouest :\n')
+    fichierSpots = open(f'./spots/spots.csv', 'a+', newline='')
     writer = csv.writer(fichierSpots, delimiter=';', dialect='excel')
-    writer.writerow([nom_spot, location])
+    writer.writerow([nom_spot, location, orientPlage])
     fichierSpots.close()
     initSpots()
 
@@ -141,13 +186,13 @@ def serverResponse(posLocation):
     return infosMeteo
 
 
-def parseResponse(infos, nomSpot):
+def parseResponse(infos, spot):
     global datas
     semaineMeteo = infos['data']['weather']
     for jour in semaineMeteo:
         for hours in jour['hourly']:
             weatherHours = WeatherInfos()
-            weatherHours.location = nomSpot
+            weatherHours.location = spot
             weatherHours.valueWeather = hours['lang_fr'][0]['value']
             weatherHours.date = getJour(jour['date'])
             weatherHours.hours = getHour(hours['time'])
@@ -161,8 +206,6 @@ def parseResponse(infos, nomSpot):
             weatherHours.vitesseVent = float(hours['windspeedKmph'])
             weatherHours.updateScore()
             datas.append(weatherHours)
-
- # 'tides': [{'tide_data': [{'tideTime': '4:39 AM', 'tideHeight_mt': '8.95', 'tideDateTime': '2020-06-02 04:39', 'tide_type': 'HIGH'}
 
 
 def getTypeMaree(hour, tides):
@@ -209,7 +252,7 @@ def clientChoice():
     if (indexChoice < len(locations) and indexChoice > -1):
         infos = serverResponse(locations[indexChoice][1])
         system('clear')
-        parseResponse(infos, locations[indexChoice][0])
+        parseResponse(infos, locations[indexChoice])
         previsionSurf = writeBestSpot()
         print(previsionSurf)
     elif (indexChoice == -1):
@@ -224,11 +267,13 @@ def clientChoice():
 
 
 def allSpots():
+    res = []
     for indexSpot in range(0, len(locations)):
         infos = serverResponse(locations[indexSpot][1])
-        parseResponse(infos, locations[indexSpot][0])
-    previsionSurf = writeBestSpot()
-    print(previsionSurf)
+        parseResponse(infos, locations[indexSpot])
+        previsionSurf = writeBestSpot()
+        res.append(previsionSurf)
+    print('\n'.join(res))
     sendMail(previsionSurf)
     time.sleep(60*60*24)
     allSpots()
