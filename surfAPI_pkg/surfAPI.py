@@ -39,9 +39,9 @@ class WeatherInfos:
     def updateScore(self):
         score = 0
         if self.houle > 1.0:
-            score += 5
+            score += 10
         elif self.houle > 0.5:
-            score += 3
+            score += 7
         if self.periode > 11:
             score += 3
         elif self.periode > 8:
@@ -131,7 +131,7 @@ def writeBestSpot():
     stringTab = []
     datas = (sorted(datas, key=lambda spotHours: spotHours.score, reverse=True))
     for weatherHours in datas:
-        if weatherHours.score > 5:
+        if weatherHours.score > 11:
             stringTab.append(f'''{weatherHours.location[0]}: Score {weatherHours.score}
 {weatherHours.date} à {weatherHours.hours}, le vent soufflera vers {weatherHours.directionVent} à {weatherHours.vitesseVent} km/s
 {weatherHours.tempExt}°C à l\'extérieur / {weatherHours.tempEau}°C dans l\'eau
