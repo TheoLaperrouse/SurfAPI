@@ -30,14 +30,17 @@ class WeatherInfos:
         self.location = []
         self.vitesseVent = 0
         self.directionVent = ''
-        self.tempEau = ''
-        self.tempExt = ''
+        self.tempEau = 0
+        self.tempExt = 0
         self.periode = 0
         self.houle = 0
         self.score = 0
+        self.maree = ''
 
     def updateScore(self):
         score = 0
+        if self.maree == 'Montante':
+            score += 3
         if self.houle > 1.0:
             score += 10
         elif self.houle > 0.5:
@@ -54,9 +57,9 @@ class WeatherInfos:
             score += 3
         elif self.tempExt > 12:
             score += 1
-        if self.vitesseVent > 15:
+        if self.vitesseVent > 30:
             score -= 1
-        elif self.vitesseVent > 30:
+        elif self.vitesseVent > 40:
             score -= 3
         score += self.directionVentScore()
         self.score = score
@@ -112,13 +115,12 @@ def sendMail(previsionSurf):
     server = smtplib.SMTP('smtp.gmail.com', 587)
     server.starttls()
     msg = MIMEMultipart()
-    # specify your sender, receiver, subject attributes
     msg['From'] = gmail_user
     msg['To'] = 'theolaperrouse@gmail.com'
     msg['Subject'] = 'Prévision Sessions Surf pour la semaine'
     body = previsionSurf
-    body = MIMEText(body)  # convert the body to a MIME compatible string
-    msg.attach(body)  # attach it to your main message
+    body = MIMEText(body)
+    msg.attach(body)
 
     server.login(gmail_user, gmail_password)
     server.sendmail(gmail_user, receveir, msg.as_string())
@@ -135,9 +137,9 @@ def writeBestSpot():
             stringTab.append(f'''{weatherHours.location[0]}: Score {weatherHours.score}
 {weatherHours.date} à {weatherHours.hours}, le vent soufflera vers {weatherHours.directionVent} à {weatherHours.vitesseVent} km/s
 {weatherHours.tempExt}°C à l\'extérieur / {weatherHours.tempEau}°C dans l\'eau
-Temps : {weatherHours.valueWeather}
+Temps : {weatherHours.valueWeather} / Marée {weatherHours.maree}
 La houle des vagues est de {weatherHours.houle}m et leur période est de {weatherHours.periode}s
-            ''')
+ ''')
 
     if len(stringTab) == 0:
         res = f'Il n\'y a pas de bonnes sessions à {datas[0].location[0]} pour cette semaine, réessayer plus tard'
@@ -178,7 +180,6 @@ def addSpot():
 def serverResponse(posLocation):
     conn = http.client.HTTPSConnection(URL)
     payload = ""
-    # Changez nombre de jours
     parameters = f"/premium/v1/marine.ashx?q={posLocation}&key={api_key}&lang=fr&format=json&tide=yes&tp=3&num_of_days=7"
     conn.request("GET", parameters, payload)
     res = conn.getresponse().read()
@@ -196,7 +197,7 @@ def parseResponse(infos, spot):
             weatherHours.valueWeather = hours['lang_fr'][0]['value']
             weatherHours.date = getJour(jour['date'])
             weatherHours.hours = getHour(hours['time'])
-            WeatherInfos.maree = getTypeMaree(
+            weatherHours.maree = getTypeMaree(
                 weatherHours.hours, jour['tides'][0])
             weatherHours.houle = float(hours['swellHeight_m'])
             weatherHours.periode = float(hours['swellPeriod_secs'])
@@ -208,6 +209,7 @@ def parseResponse(infos, spot):
             datas.append(weatherHours)
 
 
+# Ajouter taille des marées : Grand Coeff = Bien --> tide['tideHeight_mt']
 def getTypeMaree(hour, tides):
     tidesDay = tides['tide_data']
     heurePrevision = datetime.datetime.strptime(hour, '%H:%M')
