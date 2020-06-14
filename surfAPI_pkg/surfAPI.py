@@ -142,7 +142,7 @@ La houle des vagues est de {weatherHours.houle}m et leur période est de {weathe
  ''')
 
     if len(stringTab) == 0:
-        res = f'Il n\'y a pas de bonnes sessions à {datas[0].location[0]} pour cette semaine, réessayer plus tard \n'
+        res = f'Pas de bonnes sessions à {datas[0].location[0]} pour cette semaine'
     else:
         res = '\n'.join(stringTab)
     datas.clear()
@@ -275,7 +275,7 @@ def allSpots():
         parseResponse(infos, locations[indexSpot])
         previsionSurf = writeBestSpot()
         res.append(previsionSurf)
-    print('\n'.join(res))
+    previsionSurf = '\n'.join(res)
     sendMail(previsionSurf)
     time.sleep(60*60*24)
     allSpots()

@@ -1,4 +1,4 @@
-from tkinter import Tk, Label, Button, Entry, StringVar, PhotoImage, Canvas, NW, BOTH
+from tkinter import Tk, Label, Button, Entry, StringVar, messagebox
 import surfAPI
 from functools import partial
 import csv
@@ -33,6 +33,14 @@ def fenetreAddSpots(root):
                     command=partial(addSpots, ajoutSpot, entryNomSpot, entryPointsGeo, entryDirectionVent
                                     ))
     button.grid()
+    button = Button(ajoutSpot, text='Retour',
+                    command=partial(retourSpot, ajoutSpot))
+    button.grid(row=6, column=0, sticky='e')
+
+
+def retourSpot(ajoutSpot):
+    ajoutSpot.destroy()
+    main()
 
 
 def addSpots(ajout_spot, entry_spot, entry_location, entry_directionVent):
@@ -50,16 +58,21 @@ def getResultat(location):
     infos = surfAPI.serverResponse(location[1])
     surfAPI.parseResponse(infos, location)
     previsionSurf = surfAPI.writeBestSpot()
-    print(previsionSurf)
+    fenetreResultat = Tk()
+    fenetreResultat.title(f'Résultat pour {location[0]}')
+    label = Label(fenetreResultat, text=previsionSurf)
+    label.grid()
+
+
+def allSpots(root):
+    messagebox.showinfo("Mode automatique démarré",
+                        "Le mode Mail automatique/24h a démarré vous pouvez quitter cette fenêtre")
+    root.destroy()
+    surfAPI.allSpots()
 
 
 def main():
     root = Tk()
-    image_fond = PhotoImage(file="surf.gif")
-    image = Canvas(root, width=0, height=0)
-    image.grid()
-    image.create_image(0, 0, image=image_fond, anchor=NW)
-
     root.title('Surf API')
     surfAPI.initSpots()
     label = Label(
@@ -68,9 +81,15 @@ def main():
     for spot in surfAPI.locations:
         button = Button(root, text=surfAPI.locations[spot][0], command=partial(
             getResultat, surfAPI.locations[spot]))
-        button.grid()
+        button.grid(sticky='nesw')
+    label = Label(
+        root, text='')
+    label.grid()
     button = Button(root, text='Ajouter un spot',
                     command=partial(fenetreAddSpots, root))
+    button.grid()
+    button = Button(root, text='Mode Mail/24h',
+                    command=partial(allSpots, root))
     button.grid()
     root.mainloop()
 
