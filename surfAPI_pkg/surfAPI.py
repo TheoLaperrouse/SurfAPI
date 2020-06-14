@@ -142,7 +142,7 @@ La houle des vagues est de {weatherHours.houle}m et leur période est de {weathe
  ''')
 
     if len(stringTab) == 0:
-        res = f'Il n\'y a pas de bonnes sessions à {datas[0].location[0]} pour cette semaine, réessayer plus tard'
+        res = f'Il n\'y a pas de bonnes sessions à {datas[0].location[0]} pour cette semaine, réessayer plus tard \n'
     else:
         res = '\n'.join(stringTab)
     datas.clear()
