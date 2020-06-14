@@ -1,58 +1,76 @@
-from tkinter import Tk, Label, Button, Entry, StringVar
+from tkinter import Tk, Label, Button, Entry, StringVar, PhotoImage, Canvas, NW, BOTH
 import surfAPI
 from functools import partial
 import csv
 
 
-def fenetreAddSpots():
+def fenetreAddSpots(root):
+    root.destroy()
     ajoutSpot = Tk()
     ajoutSpot.title('Ajout spot')
     label = Label(
         ajoutSpot, text='Nom du spot (Ex : Plage de Primel, Plougasnou) : ')
     label.grid()
     nomSpot = StringVar()
-    nomSpot.set("Peu")
+    nomSpot.set('')
     entryNomSpot = Entry(ajoutSpot, textvariable=nomSpot, width=30)
     entryNomSpot.grid()
     label = Label(
-        ajoutSpot, text='Points de Géolocalisation (Ex : 48.3, 49.6) : ')
+        ajoutSpot, text='Points de Géolocalisation (Ex : 48.3,49.6) : ')
     label.grid()
     pointsGeo = StringVar()
-    pointsGeo.set('test')
+    pointsGeo.set('')
     entryPointsGeo = Entry(ajoutSpot, textvariable=pointsGeo, width=30)
     entryPointsGeo.grid()
     directionVent = StringVar()
-    directionVent.set("test")
+    directionVent.set('')
     label = Label(
         ajoutSpot, text='Direction du Vent (Ex : Nord-Ouest) : ')
     label.grid()
     entryDirectionVent = Entry(ajoutSpot, textvariable=directionVent, width=30)
     entryDirectionVent.grid()
     button = Button(ajoutSpot, text='Ajouter le spot',
-                    command=partial(addSpots, entryNomSpot.get(), entryPointsGeo.get(), entryDirectionVent.get()))
+                    command=partial(addSpots, ajoutSpot, entryNomSpot, entryPointsGeo, entryDirectionVent
+                                    ))
     button.grid()
-    ajoutSpot.mainloop()
 
 
-def addSpots(nom_spot, location, directionVent):
+def addSpots(ajout_spot, entry_spot, entry_location, entry_directionVent):
     fichierSpots = open(f'./spots/spots.csv', 'a+', newline='')
     writer = csv.writer(fichierSpots, delimiter=';', dialect='excel')
-    writer.writerow([nom_spot, location, directionVent])
+    writer.writerow([entry_spot.get(), entry_location.get(),
+                     entry_directionVent.get()])
     fichierSpots.close()
-    print('Bien ajouté')
+    ajout_spot.destroy()
     surfAPI.initSpots()
+    main()
+
+
+def getResultat(location):
+    infos = surfAPI.serverResponse(location[1])
+    surfAPI.parseResponse(infos, location)
+    previsionSurf = surfAPI.writeBestSpot()
+    print(previsionSurf)
 
 
 def main():
     root = Tk()
+    image_fond = PhotoImage(file="surf.gif")
+    image = Canvas(root, width=0, height=0)
+    image.grid()
+    image.create_image(0, 0, image=image_fond, anchor=NW)
+
     root.title('Surf API')
     surfAPI.initSpots()
+    label = Label(
+        root, text='Cliquez sur un des boutons :')
+    label.grid()
     for spot in surfAPI.locations:
-        print(surfAPI.locations[spot][0])
-        label = Label(root, text=surfAPI.locations[spot][0])
-        label.grid()
+        button = Button(root, text=surfAPI.locations[spot][0], command=partial(
+            getResultat, surfAPI.locations[spot]))
+        button.grid()
     button = Button(root, text='Ajouter un spot',
-                    command=partial(fenetreAddSpots))
+                    command=partial(fenetreAddSpots, root))
     button.grid()
     root.mainloop()
 
