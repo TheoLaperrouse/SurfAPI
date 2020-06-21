@@ -65,6 +65,7 @@ class WeatherInfos:
         self.score = score
 
     def directionVentScore(self):
+
         if(self.location[2] == 'Nord'):
             if self.directionVent in ['N', 'NNE', 'NNO']:
                 return 3
@@ -133,7 +134,7 @@ def writeBestSpot():
     stringTab = []
     datas = (sorted(datas, key=lambda spotHours: spotHours.score, reverse=True))
     for weatherHours in datas:
-        if weatherHours.score > 11:
+        if weatherHours.score > 12:
             stringTab.append(f'''{weatherHours.location[0]}: Score {weatherHours.score}
 {weatherHours.date} à {weatherHours.hours}, le vent soufflera vers {weatherHours.directionVent} à {weatherHours.vitesseVent} km/s
 {weatherHours.tempExt}°C à l\'extérieur / {weatherHours.tempEau}°C dans l\'eau

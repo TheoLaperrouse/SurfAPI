@@ -76,7 +76,7 @@ def main():
     root.title('Surf API')
     surfAPI.initSpots()
     label = Label(
-        root, text='Cliquez sur un des boutons :')
+        root, text='Cliquez sur un de ces spots :')
     label.grid()
     for spot in surfAPI.locations:
         button = Button(root, text=surfAPI.locations[spot][0], command=partial(
