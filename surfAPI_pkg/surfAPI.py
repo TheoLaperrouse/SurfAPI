@@ -11,7 +11,7 @@ from email.mime.text import MIMEText
 
 
 URL = 'api.worldweatheronline.com'
-api_key = '5b4541479ee849d29a8152452202505'
+api_key = '70e629a997b144328dc151643202507'
 locations = {}
 datas = []
 DayWeek = ['Lundi', 'Mardi', 'Mercredi',
